@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飛機遊戲</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #87CEEB;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let plane = {
+            x: canvas.width / 2 - 50,
+            y: canvas.height - 100,
+            width: 80,
+            height: 80,
+            speed: 5,
+            image: new Image()
+        };
+
+        plane.image.src = 'https://i.imgur.com/3tJdEYp.png'; // 飛機圖片
+
+        let enemies = [];
+
+        // 創建敵機
+        function createEnemy() {
+            let enemy = {
+                x: Math.random() * (canvas.width - 50),
+                y: -50,
+                width: 50,
+                height: 50,
+                speed: 3,
+                image: new Image()
+            };
+            enemy.image.src = 'https://i.imgur.com/MefSqyF.png'; // 敵機圖片
+            enemies.push(enemy);
+        }
+
+        // 繪製飛機
+        function drawPlane() {
+            ctx.drawImage(plane.image, plane.x, plane.y, plane.width, plane.height);
+        }
+
+        // 繪製敵機
+        function drawEnemies() {
+            enemies.forEach((enemy, index) => {
+                enemy.y += enemy.speed;
+                ctx.drawImage(enemy.image, enemy.x, enemy.y, enemy.width, enemy.height);
+
+                // 移除飛出畫面的敵機
+                if (enemy.y > canvas.height) {
+                    enemies.splice(index, 1);
+                }
+            });
+        }
+
+        // 控制飛機的移動
+        let keys = {};
+
+        window.addEventListener('keydown', function(e) {
+            keys[e.key] = true;
+        });
+
+        window.addEventListener('keyup', function(e) {
+            keys[e.key] = false;
+        });
+
+        function movePlane() {
+            if (keys['ArrowUp'] && plane.y > 0) {
+                plane.y -= plane.speed;
+            }
+            if (keys['ArrowDown'] && plane.y + plane.height < canvas.height) {
+                plane.y += plane.speed;
+            }
+            if (keys['ArrowLeft'] && plane.x > 0) {
+                plane.x -= plane.speed;
+            }
+            if (keys['ArrowRight'] && plane.x + plane.width < canvas.width) {
+                plane.x += plane.speed;
+            }
+        }
+
+        // 碰撞檢測
+        function checkCollision(rect1, rect2) {
+            return (
+                rect1.x < rect2.x + rect2.width &&
+                rect1.x + rect1.width > rect2.x &&
+                rect1.y < rect2.y + rect2.height &&
+                rect1.y + rect1.height > rect2.y
+            );
+        }
+
+        // 更新遊戲畫面
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // 清除畫布
+            movePlane(); // 控制飛機移動
+            drawPlane(); // 繪製飛機
+            drawEnemies(); // 繪製敵機
+
+            // 檢查是否發生碰撞
+            enemies.forEach((enemy, index) => {
+                if (checkCollision(plane, enemy)) {
+                    alert("遊戲結束！");
+                    enemies = []; // 清空敵機
+                    plane.x = canvas.width / 2 - 50;
+                    plane.y = canvas.height - 100;
+                }
+            });
+
+            requestAnimationFrame(update); // 持續更新畫面
+        }
+
+        // 定期生成敵機
+        setInterval(createEnemy, 2000);
+
+        // 開始遊戲
+        update();
+
+    </script>
+</body>
+</html>
